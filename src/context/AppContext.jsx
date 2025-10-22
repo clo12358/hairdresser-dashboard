@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { ensureAnonAuth } from "../firebase";
 import { cache } from "../utils/localCache";
-import { v4 as uuid } from "uuid";
 import { colorForService } from "../utils/colors";
 
 import {
@@ -51,14 +50,14 @@ export default function AppProvider({ children }) {
           fetchStock(),
         ]);
 
-        const norm = appts.map((a) => ({
+        const normalized = appts.map((a) => ({
           ...a,
           start: new Date(a.startISO),
           end: new Date(a.endISO),
         }));
 
-        setAppointments(norm);
-        cache.set("appointments", norm);
+        setAppointments(normalized);
+        cache.set("appointments", normalized);
         setClients(clnts);
         cache.set("clients", clnts);
         setStock(stk);
@@ -92,7 +91,7 @@ export default function AppProvider({ children }) {
       end,
     };
 
-    const created = await createAppointment(appt);
+    const created = await createAppointment(appt); // ✅ Firestore write handled here
     const full = { id: created.id, ...appt };
 
     setAppointments((prev) => {
@@ -128,7 +127,7 @@ export default function AppProvider({ children }) {
   }
 
   async function removeAppointment(id) {
-    await deleteAppointment(id);
+    await deleteAppointment(id); // ✅ Deletes from Firestore
     setAppointments((prev) => {
       const next = prev.filter((a) => a.id !== id);
       cache.set("appointments", next);
@@ -137,7 +136,7 @@ export default function AppProvider({ children }) {
   }
 
   // ===============================
-  // 👥 CLIENTS (updated)
+  // 👥 CLIENTS
   // ===============================
   async function addClient(client) {
     const created = await createClient(client);
@@ -162,24 +161,18 @@ export default function AppProvider({ children }) {
   }
 
   async function removeClient(id) {
-    // Find the client’s name before deleting
     const client = clients.find((c) => c.id === id);
     if (client) {
-      // 🗑️ Delete all related appointments
       await deleteAppointmentsForClient(client.name);
     }
-
-    // Delete the client itself
     await deleteClient(id);
 
-    // Update local state
     setClients((prev) => {
       const next = prev.filter((c) => c.id !== id);
       cache.set("clients", next);
       return next;
     });
 
-    // Also remove deleted client’s appointments locally
     setAppointments((prev) => {
       const next = prev.filter((a) => a.clientName !== client?.name);
       cache.set("appointments", next);
@@ -252,6 +245,7 @@ export default function AppProvider({ children }) {
     addStockItem,
     editStockItem,
     removeStockItem,
+    setAppointments, // ✅ added for CalendarView sync
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

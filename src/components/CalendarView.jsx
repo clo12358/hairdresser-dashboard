@@ -4,6 +4,8 @@ import enIE from "date-fns/locale/en-IE";
 import { useEffect, useMemo, useState } from "react";
 import { useApp } from "../context/AppContext";
 import AppointmentForm from "./AppointmentForm";
+import { db } from "../firebase"; // ✅ your Firebase config file
+import { doc, deleteDoc } from "firebase/firestore"; // ✅ import Firestore delete
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
 const locales = { "en-IE": enIE };
@@ -17,15 +19,15 @@ const localizer = dateFnsLocalizer({
 });
 
 export default function CalendarView() {
-  const { appointments } = useApp();
+  const { appointments, setAppointments } = useApp(); // ✅ make sure setAppointments is exposed in AppContext
   const [modalState, setModalState] = useState(null);
   const [view, setView] = useState("day");
-  const [date, setDate] = useState(new Date()); // ✅ controls the visible date
+  const [date, setDate] = useState(new Date());
 
-  // Force Day view on mount
+  // ✅ Force Day view on mount
   useEffect(() => setView("day"), []);
 
-  // ✅ Prepare events
+  // ✅ Prepare calendar events
   const events = useMemo(
     () =>
       appointments.map((a) => ({
@@ -39,7 +41,7 @@ export default function CalendarView() {
     [appointments]
   );
 
-  // ✅ Event rendering
+  // ✅ Custom event card
   function EventCard({ event }) {
     return (
       <div className="p-1">
@@ -53,7 +55,7 @@ export default function CalendarView() {
     );
   }
 
-  // ✅ Styling for events
+  // ✅ Style events visually
   function eventStyleGetter(event) {
     return {
       style: {
@@ -71,7 +73,7 @@ export default function CalendarView() {
     };
   }
 
-  // ✅ Toolbar (fixed navigation)
+  // ✅ Toolbar with navigation & views
   function CustomToolbar({ label, onNavigate, onView, view }) {
     const navBtn =
       "w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-full bg-[#D2BFAF] text-[#3B2F2F] hover:bg-[#AD947F] transition-all duration-200 text-sm sm:text-base";
@@ -127,6 +129,27 @@ export default function CalendarView() {
     );
   }
 
+  // ✅ Function to delete an appointment
+  async function handleDeleteAppointment(appointmentId) {
+    if (!appointmentId) return;
+
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this appointment?"
+    );
+    if (!confirmDelete) return;
+
+    try {
+      // 🔥 Delete from Firestore
+      await deleteDoc(doc(db, "appointments", appointmentId));
+
+      // ✅ Update local state instantly
+      setAppointments((prev) => prev.filter((a) => a.id !== appointmentId));
+    } catch (error) {
+      console.error("Error deleting appointment:", error);
+      alert("Failed to delete appointment. Please try again.");
+    }
+  }
+
   return (
     <div className="w-full mx-auto max-w-7xl">
       {/* Header */}
@@ -155,8 +178,8 @@ export default function CalendarView() {
           defaultView="day"
           view={view}
           onView={(newView) => setView(newView)}
-          date={date} // ✅ controls visible date
-          onNavigate={(newDate) => setDate(newDate)} // ✅ updates when arrows clicked
+          date={date}
+          onNavigate={(newDate) => setDate(newDate)}
           views={["day", "week", "month"]}
           selectable
           step={30}
@@ -166,10 +189,15 @@ export default function CalendarView() {
           max={new Date(0, 0, 0, 21, 0, 0)}
           eventPropGetter={eventStyleGetter}
           components={{
-            toolbar: (props) => (
-              <CustomToolbar {...props} view={view} /> // ✅ working navigation
+            toolbar: (props) => <CustomToolbar {...props} view={view} />,
+            event: (props) => (
+              <div
+                onDoubleClick={() => handleDeleteAppointment(props.event.id)} // ✅ double click to delete
+                title="Double-click to delete"
+              >
+                <EventCard {...props} />
+              </div>
             ),
-            event: EventCard,
           }}
           style={{
             height:
@@ -187,7 +215,7 @@ export default function CalendarView() {
         />
       </div>
 
-      {/* Modal */}
+      {/* Modal for creating/editing */}
       {modalState && (
         <AppointmentForm
           slotInfo={modalState.slotInfo}
