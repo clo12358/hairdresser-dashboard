@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useApp } from "../context/AppContext";
+import { collection, addDoc } from "firebase/firestore";
+import { db } from "../firebase"; // 👈 Firestore connection
 
 export default function AppointmentForm({ slotInfo, existing, onClose }) {
   const isEdit = !!existing;
@@ -70,10 +72,12 @@ export default function AppointmentForm({ slotInfo, existing, onClose }) {
     setDurationHours(initialDurationHours);
   }, [initialStart, initialDurationHours]);
 
+  // ✅ Updated submit handler
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
     setSaving(true);
+
     try {
       const startDate = ensureDate(start);
       const endDate = new Date(startDate.getTime() + hoursToMs(durationHours || 1));
@@ -81,22 +85,27 @@ export default function AppointmentForm({ slotInfo, existing, onClose }) {
       const data = {
         title,
         clientName,
-        service: selectedServices.join(", "), // ✅ save multiple
+        service: selectedServices.join(", "),
         notes,
         startISO: startDate.toISOString(),
         endISO: endDate.toISOString(),
         durationHours,
         cost: cost ? Number(cost) : 0,
+        reminderSent: false, // 👈 so Cloud Function knows it hasn’t sent a reminder
       };
 
       if (isEdit) {
         await editAppointment(existing.id, data);
       } else {
         await addAppointment(data);
+        // ✅ Save to Firestore
+        await addDoc(collection(db, "appointments"), data);
+        console.log("✅ Appointment added to Firestore!");
       }
+
       onClose?.();
     } catch (err) {
-      console.error(err);
+      console.error("Error saving appointment:", err);
       setError("Sorry, we couldn’t save that. Please try again.");
     } finally {
       setSaving(false);
@@ -117,7 +126,6 @@ export default function AppointmentForm({ slotInfo, existing, onClose }) {
     }
   }
 
-  // Handle service selection (multi)
   function toggleService(service) {
     setSelectedServices((prev) =>
       prev.includes(service)
@@ -156,7 +164,6 @@ export default function AppointmentForm({ slotInfo, existing, onClose }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Left */}
             <div className="flex flex-col gap-4">
-              {/* 👤 Client Dropdown */}
               <div>
                 <label className="block text-[#3B2F2F] font-medium mb-1">
                   Client Name
@@ -176,7 +183,7 @@ export default function AppointmentForm({ slotInfo, existing, onClose }) {
                 </select>
               </div>
 
-              {/* ✅ Multi-Service Selection */}
+              {/* Services */}
               <div>
                 <label className="block text-[#3B2F2F] font-medium mb-1">
                   Services
@@ -199,7 +206,6 @@ export default function AppointmentForm({ slotInfo, existing, onClose }) {
                 </div>
               </div>
 
-              {/* Title */}
               <div>
                 <label className="block text-[#3B2F2F] font-medium mb-1">Title</label>
                 <input
@@ -210,7 +216,6 @@ export default function AppointmentForm({ slotInfo, existing, onClose }) {
                 />
               </div>
 
-              {/* 💰 Cost */}
               <div>
                 <label className="block text-[#3B2F2F] font-medium mb-1">
                   Cost (€)
@@ -278,7 +283,6 @@ export default function AppointmentForm({ slotInfo, existing, onClose }) {
             </p>
           )}
 
-          {/* Footer */}
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8 pt-4 border-t border-[#D2BFAF]">
             {isEdit && (
               <button
@@ -318,7 +322,7 @@ export default function AppointmentForm({ slotInfo, existing, onClose }) {
   );
 }
 
-// Helper
+// Helper to format datetime-local input
 function toLocal(date) {
   const pad = (n) => String(n).padStart(2, "0");
   const d = new Date(date);
