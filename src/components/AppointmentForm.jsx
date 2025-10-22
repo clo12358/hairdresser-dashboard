@@ -170,26 +170,29 @@ export default function AppointmentForm({ slotInfo, existing, onClose }) {
                 </select>
               </div>
 
-              {/* Services */}
+              {/* 💅 Restyled Services (Checkbox layout) */}
               <div>
-                <label className="block text-[#3B2F2F] font-medium mb-1">
+                <label className="block text-[#3B2F2F] font-medium mb-2">
                   Services
                 </label>
-                <div className="bg-[#F1DCC3] border border-[#D2BFAF] rounded-xl p-3 flex flex-wrap gap-2 max-h-44 overflow-y-auto">
-                  {serviceOptions.map((s) => (
-                    <button
-                      type="button"
-                      key={s}
-                      onClick={() => toggleService(s)}
-                      className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
-                        selectedServices.includes(s)
-                          ? "bg-[#8A7563] text-white shadow-sm"
-                          : "bg-white text-[#3B2F2F] border border-[#D2BFAF] hover:bg-[#D2BFAF]/40"
-                      }`}
-                    >
-                      {s}
-                    </button>
-                  ))}
+                <div className="bg-[#F1DCC3] border border-[#D2BFAF] rounded-xl p-3 max-h-56 overflow-y-auto divide-y divide-[#D2BFAF]/60">
+                  {serviceOptions.map((s) => {
+                    const isSelected = selectedServices.includes(s);
+                    return (
+                      <label
+                        key={s}
+                        className="flex items-center justify-between py-2 px-2 hover:bg-[#EBD4BB] rounded-lg cursor-pointer transition"
+                      >
+                        <span className="text-[#3B2F2F] font-medium text-sm">{s}</span>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleService(s)}
+                          className="w-4 h-4 accent-[#8A7563] cursor-pointer"
+                        />
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -262,7 +265,9 @@ export default function AppointmentForm({ slotInfo, existing, onClose }) {
                 >
                   −
                 </button>
-                <span className="font-semibold">{durationHours.toFixed(2)}</span>
+                <span className="font-semibold text-[#3B2F2F]">
+                  {durationHours.toFixed(2)}
+                </span>
                 <button
                   type="button"
                   onClick={() => setDurationHours(durationHours + 0.25)}

@@ -29,11 +29,18 @@ export default function App() {
     listenForMessages();
   }, []);
 
-
   return (
     <AppProvider>
       <Router>
-        <div data-theme="salon" className="min-h-screen p-4 bg-base-200">
+        {/* ✅ Force light background and text color here */}
+        <div
+          data-theme="salon"
+          className="min-h-screen p-4"
+          style={{
+            backgroundColor: "#F9F4ED", // Light background (same as your dashboard theme)
+            color: "#3B2F2F",           // Main text color
+          }}
+        >
           <Navbar />
           <Routes>
             <Route path="/" element={<CalendarPage />} />

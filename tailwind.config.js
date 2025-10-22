@@ -24,7 +24,5 @@ export default {
         },
       },
     ],
-    // 👇 ensures your custom theme is applied by default
-    darkTheme: false,
   },
 };
