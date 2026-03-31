@@ -1,17 +1,42 @@
-# React + Vite
+# 💇 Hairdresser Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern salon management dashboard built with React, Vite, Tailwind CSS, and Firebase. Designed to help hairdressers and salon owners manage appointments, clients, and day-to-day operations through a clean, responsive web interface.
 
-Currently, two official plugins are available:
+## 🚀 Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **React** – UI framework
+- **Vite** – Fast dev server and bundler with HMR
+- **Tailwind CSS** – Utility-first styling
+- **Firebase** – Backend, real-time database, and cloud functions
 
-## React Compiler
+## 📦 Getting Started
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Prerequisites
+- Node.js (v18+)
+- Firebase CLI (`npm install -g firebase-tools`)
 
-## Expanding the ESLint configuration
+### Installation
+```bash
+git clone https://github.com/clo12358/hairdresser-dashboard.git
+cd hairdresser-dashboard
+npm install
+npm run dev
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-# hairdresser-dashboard
+## 🔧 Vite Plugins
+
+This project uses [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) (Babel) for Fast Refresh.
+
+## 📁 Project Structure
+```
+src/          # React components and pages
+functions/    # Firebase cloud functions
+public/       # Static assets
+```
+
+## 🚢 Deployment
+
+This project is configured for Firebase Hosting:
+```bash
+firebase deploy
+```
